@@ -3,7 +3,20 @@ import Budget from "../models/Budget"
 
 export class BudgetController {
     static getAll = async (req: Request, res: Response) => {
-        console.log('GET /api/v1/budgets')
+
+        try {
+            const budgets = await Budget.findAll({
+                order: [
+                    ['createdAt', 'DESC']
+                ],
+                // TODO: filtrar por el usuario autenticado
+            })
+            res.status(200).json(budgets)
+        } catch (error) {
+            //console.error('Error fetching budgets:', error)
+            return res.status(500).json({ message: 'Internal server error' })
+        }
+
     }
 
     static create = async (req: Request, res: Response) => {
@@ -20,14 +33,40 @@ export class BudgetController {
     }
 
     static getById = async (req: Request, res: Response) => {
-        console.log('GET /api/v1/budgets/:id')
+        res.json(req.budget)
     }
 
     static updateById = async (req: Request, res: Response) => {
-        console.log('PUT /api/v1/budgets/:id')
+        try {
+            const { id } = req.params
+            const budget = await Budget.findByPk(id)
+            if (!budget) {
+                return res.status(404).json({ error: 'Budget not found' })
+            }
+
+            await budget.update(req.body)
+            res.json({ message: 'Budget updated successfully' })
+
+        } catch (error) {
+            //console.error('Error updating budget:', error)
+            return res.status(500).json({ message: 'Internal server error' })
+        }
     }
 
     static deleteById = (async (req: Request, res: Response) => {
-        console.log('DELETE /api/v1/budgets/:id')
+        try {
+            const { id } = req.params
+            const budget = await Budget.findByPk(id)
+            if (!budget) {
+                return res.status(404).json({ error: 'Budget not found' })
+            }
+
+            await budget.destroy()
+            res.json({ message: 'Budget deleted successfully' })
+
+        } catch (error) {
+            //console.error('Error deleting budget:', error)
+            return res.status(500).json({ message: 'Internal server error' })
+        }
     })
 }
