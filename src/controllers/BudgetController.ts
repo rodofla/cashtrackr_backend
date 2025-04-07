@@ -37,36 +37,12 @@ export class BudgetController {
     }
 
     static updateById = async (req: Request, res: Response) => {
-        try {
-            const { id } = req.params
-            const budget = await Budget.findByPk(id)
-            if (!budget) {
-                return res.status(404).json({ error: 'Budget not found' })
-            }
-
-            await budget.update(req.body)
-            res.json({ message: 'Budget updated successfully' })
-
-        } catch (error) {
-            //console.error('Error updating budget:', error)
-            return res.status(500).json({ message: 'Internal server error' })
-        }
+        await req.budget.update(req.body)
+        res.json({ message: 'Budget updated successfully' })
     }
 
     static deleteById = (async (req: Request, res: Response) => {
-        try {
-            const { id } = req.params
-            const budget = await Budget.findByPk(id)
-            if (!budget) {
-                return res.status(404).json({ error: 'Budget not found' })
-            }
-
-            await budget.destroy()
-            res.json({ message: 'Budget deleted successfully' })
-
-        } catch (error) {
-            //console.error('Error deleting budget:', error)
-            return res.status(500).json({ message: 'Internal server error' })
-        }
+        await req.budget.destroy()
+        res.json({ message: 'Budget deleted successfully' })
     })
 }

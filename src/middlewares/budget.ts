@@ -1,20 +1,18 @@
 import type { Request, Response, NextFunction } from "express";
-import { param, validationResult } from "express-validator";
+import { param, validationResult, body } from "express-validator";
 import Budget from "../models/Budget";
 
 declare global {
     namespace Express {
         interface Request {
-            budget: Budget;
+            budget?: Budget;
         }
     }
 }
 
 export const validateBudgetId = async (req: Request, res: Response, next: NextFunction) => {
-    await param('id')
-            .isInt().withMessage('Id not valid')
-            .custom((value) => value > 0).withMessage('Id not valid')
-        .run(req)
+
+    await param('budgetId').isInt({ gt: 0 }).withMessage('Id not valid').run(req)
 
     let errors = validationResult(req)
     if (!errors.isEmpty()) {
@@ -25,8 +23,8 @@ export const validateBudgetId = async (req: Request, res: Response, next: NextFu
 
 export const validateBudgeExists = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id } = req.params
-        const budget = await Budget.findByPk(id)
+        const { budgetId } = req.params
+        const budget = await Budget.findByPk(budgetId)
         if (!budget) {
             return res.status(404).json({ error: 'Budget not found' })
         }
@@ -36,4 +34,21 @@ export const validateBudgeExists = async (req: Request, res: Response, next: Nex
         //console.error('Error fetching budget:', error)
         return res.status(500).json({ message: 'Internal server error' })
     }
+}
+
+export const validateBudgetInput = async (req: Request, res: Response, next: NextFunction) => {
+    await body('name')
+        .notEmpty().withMessage('Name is required')
+        .run(req)
+
+    await body('amount').notEmpty().withMessage('Amount is required')
+        .isNumeric().withMessage('Amount must be a number')
+        .custom((value) => value > 0).withMessage('Amount must be a positive number greater than 0')
+        .run(req)
+
+    let errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() })
+    }
+    next()
 }

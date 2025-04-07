@@ -3,6 +3,7 @@ import colors from 'colors'
 import morgan from 'morgan'
 import { db } from './config/db'
 import budgetRouter from './routes/budgetRouter'
+import errorHandlerMiddleware from './middlewares/errorHandlerMiddleware'
 
 async function connectDB() {
     try {
@@ -31,6 +32,8 @@ const app = express()
 app.use(morgan('dev'))
 
 app.use(express.json())
+
+app.use(errorHandlerMiddleware);
 
 app.use('/api/v1/budgets', budgetRouter)
 
